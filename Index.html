@@ -1,0 +1,597 @@
+```html
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rutina de Autotratamiento Suboccipital</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#075985',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Canvas Confetti para celebración final -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .tab-active { @apply border-brand-500 text-brand-600 dark:text-brand-400 font-bold; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-full flex flex-col transition-colors duration-200">
+
+    <!-- Header Navigation -->
+    <header class="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-brand-500 text-white rounded-2xl shadow-lg shadow-brand-500/20">
+                    <i class="ph-bold ph-first-aid-kit text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight">Autotratamiento Suboccipital</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Guía Clínica interactiva &amp; Seguidor</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <!-- Selector de Vista (Paso a paso vs Completa) -->
+                <div class="hidden sm:flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold">
+                    <button onclick="setViewMode('all')" id="btn-view-all" class="px-3 py-1.5 rounded-lg transition-all bg-white dark:bg-slate-700 shadow-sm">Vista Completa</button>
+                    <button onclick="setViewMode('step')" id="btn-view-step" class="px-3 py-1.5 rounded-lg transition-all text-slate-500 hover:text-slate-800 dark:hover:text-slate-200">Paso a Paso</button>
+                </div>
+
+                <!-- Botón Modo Oscuro -->
+                <button onclick="toggleDarkMode()" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition text-slate-600 dark:text-slate-300">
+                    <i id="theme-icon" class="ph-bold ph-moon text-xl"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Content Container -->
+    <main class="flex-grow max-w-5xl w-full mx-auto px-4 py-6 space-y-6">
+
+        <!-- Banner de Progreso Global & Cronómetro General -->
+        <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+            
+            <!-- Progreso General -->
+            <div class="md:col-span-2 space-y-2">
+                <div class="flex justify-between items-center text-sm">
+                    <span class="font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                        <i class="ph-bold ph-chart-line-up text-brand-500"></i> Progreso de la Sesión
+                    </span>
+                    <span id="progress-percent" class="font-bold text-brand-600 dark:text-brand-400 font-mono">0%</span>
+                </div>
+                <div class="w-full bg-slate-100 dark:bg-slate-800 h-3 rounded-full overflow-hidden p-0.5">
+                    <div id="progress-bar" class="bg-gradient-to-r from-brand-500 to-emerald-500 h-full w-0 rounded-full transition-all duration-300"></div>
+                </div>
+                <p id="progress-status" class="text-xs text-slate-400">0 de 8 ejercicios completados</p>
+            </div>
+
+            <!-- Cronómetro Global -->
+            <div class="bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] font-bold tracking-wider text-slate-400 uppercase block">Tiempo Transcurrido</span>
+                    <span id="global-timer-display" class="font-mono text-2xl font-extrabold text-slate-800 dark:text-slate-100">00:00</span>
+                </div>
+                <div class="flex gap-1.5">
+                    <button onclick="toggleGlobalTimer()" id="global-timer-btn" class="w-10 h-10 bg-brand-500 hover:bg-brand-600 text-white rounded-xl flex items-center justify-center transition shadow-md shadow-brand-500/20">
+                        <i class="ph-fill ph-play text-lg"></i>
+                    </button>
+                    <button onclick="resetGlobalTimer()" class="w-10 h-10 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl flex items-center justify-center transition">
+                        <i class="ph-bold ph-arrow-counter-clockwise text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Temporizador de Presión y Estiramientos (Modal/Widget Accesible) -->
+        <div class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white p-5 rounded-3xl shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-3 bg-white/10 rounded-2xl backdrop-blur-md">
+                    <i class="ph-bold ph-timer text-3xl text-brand-300"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-base">Temporizador de Mantenimiento</h3>
+                    <p class="text-xs text-slate-300">Ideal para presiones en puntos gatillo (60s-90s) y estiramientos sostenidos.</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
+                <div class="flex gap-1.5 bg-white/10 p-1 rounded-2xl backdrop-blur-md">
+                    <button onclick="setCountdown(30)" class="px-2.5 py-1 text-xs font-semibold rounded-xl hover:bg-white/20 transition">30s</button>
+                    <button onclick="setCountdown(60)" class="px-2.5 py-1 text-xs font-semibold rounded-xl hover:bg-white/20 transition">60s</button>
+                    <button onclick="setCountdown(90)" class="px-2.5 py-1 text-xs font-semibold rounded-xl hover:bg-white/20 transition">90s</button>
+                </div>
+                <div class="font-mono text-2xl font-bold text-brand-300 min-w-[70px] text-center" id="countdown-display">00:00</div>
+                <button onclick="toggleCountdown()" id="countdown-btn" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-xs rounded-xl shadow-lg transition flex items-center gap-1.5">
+                    <i class="ph-fill ph-play"></i> Iniciar
+                </button>
+            </div>
+        </div>
+
+        <!-- Contenedor Principal de Ejercicios -->
+        <div id="exercise-container" class="space-y-6">
+
+            <!-- VÍDEO 1 -->
+            <div class="section-block space-y-4" id="section-v1">
+                <div class="flex items-center gap-2 pb-2 border-b border-slate-200 dark:border-slate-800">
+                    <i class="ph-bold ph-video-camera text-brand-500 text-xl"></i>
+                    <h2 class="font-bold text-lg">Vídeo 1: Técnica Manual y Fortalecimiento</h2>
+                </div>
+
+                <!-- Ejercicio 1 -->
+                <div class="exercise-card bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4 transition" data-id="1">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-xl bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-brand-300 font-bold flex items-center justify-center text-sm">1</span>
+                            <div>
+                                <h3 class="font-bold text-base">Liberación por Presión (Puntos Gatillo)</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Presión directa sobre los puntos de mayor tensión en la base occipital.</p>
+                            </div>
+                        </div>
+                        <span class="text-xs font-semibold px-3 py-1 bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full border border-amber-200 dark:border-amber-800/50">1 - 1.5 minutos</span>
+                    </div>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl">
+                        <strong>Instrucciones:</strong> Presiona con las yemas de los dedos en la base del cráneo buscando zonas sensibles. Mantén la presión sostenida sin provocar dolor punzante hasta que la molestia empiece a ceder.
+                    </p>
+                    <div class="flex justify-end pt-2">
+                        <button onclick="toggleExercise(1)" id="btn-ex-1" class="px-4 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-2">
+                            <i class="ph-bold ph-circle"></i> Marcar Completado
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Ejercicio 2 -->
+                <div class="exercise-card bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4 transition" data-id="2">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-xl bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-brand-300 font-bold flex items-center justify-center text-sm">2</span>
+                            <div>
+                                <h3 class="font-bold text-base">Estiramiento Suboccipital (Doble Papada)</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Flexión craneo-cervical para elongación profunda.</p>
+                            </div>
+                        </div>
+                        <span class="text-xs font-semibold px-3 py-1 bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full border border-amber-200 dark:border-amber-800/50">1.5 minutos</span>
+                    </div>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl">
+                        <strong>Instrucciones:</strong> Lleva el mentón suavemente hacia el cuello (gesto de doble papada) sintiendo la tirantez justo debajo del hueso occipital. Mantén la respiración fluida.
+                    </p>
+                    <div class="flex justify-end pt-2">
+                        <button onclick="toggleExercise(2)" id="btn-ex-2" class="px-4 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-2">
+                            <i class="ph-bold ph-circle"></i> Marcar Completado
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Ejercicio 3: Inclinación Lateral Isométrica -->
+                <div class="exercise-card bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4 transition" data-id="3">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-xl bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-brand-300 font-bold flex items-center justify-center text-sm">3</span>
+                            <div>
+                                <h3 class="font-bold text-base">Inclinación Lateral Isométrica</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Fortalecimiento lateral sostenido (3 series x 10 reps por lado).</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Tracker de Series y Repeticiones -->
+                    <div class="space-y-2">
+                        <div class="text-xs font-semibold text-slate-500">Selecciona las series completadas:</div>
+                        <div class="grid grid-cols-3 gap-2" id="sets-ex-3">
+                            <button onclick="toggleSet(3, 1)" class="p-3 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 flex flex-col items-center gap-1 transition">
+                                <span>Serie 1</span>
+                                <span class="text-[10px] text-slate-400">10 reps</span>
+                            </button>
+                            <button onclick="toggleSet(3, 2)" class="p-3 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 flex flex-col items-center gap-1 transition">
+                                <span>Serie 2</span>
+                                <span class="text-[10px] text-slate-400">10 reps</span>
+                            </button>
+                            <button onclick="toggleSet(3, 3)" class="p-3 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 flex flex-col items-center gap-1 transition">
+                                <span>Serie 3</span>
+                                <span class="text-[10px] text-slate-400">10 reps</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ejercicio 4: Flexión Frontal Isométrica -->
+                <div class="exercise-card bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4 transition" data-id="4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-xl bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-brand-300 font-bold flex items-center justify-center text-sm">4</span>
+                            <div>
+                                <h3 class="font-bold text-base">Flexión Frontal Isométrica</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Resistencia anterior con mano o banda (3 series x 10 reps).</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-xs font-semibold text-slate-500">Selecciona las series completadas:</div>
+                        <div class="grid grid-cols-3 gap-2" id="sets-ex-4">
+                            <button onclick="toggleSet(4, 1)" class="p-3 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 flex flex-col items-center gap-1 transition">
+                                <span>Serie 1</span>
+                                <span class="text-[10px] text-slate-400">10 reps</span>
+                            </button>
+                            <button onclick="toggleSet(4, 2)" class="p-3 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 flex flex-col items-center gap-1 transition">
+                                <span>Serie 2</span>
+                                <span class="text-[10px] text-slate-400">10 reps</span>
+                            </button>
+                            <button onclick="toggleSet(4, 3)" class="p-3 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 flex flex-col items-center gap-1 transition">
+                                <span>Serie 3</span>
+                                <span class="text-[10px] text-slate-400">10 reps</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ejercicio 5: Extensión Posterior Isométrica -->
+                <div class="exercise-card bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4 transition" data-id="5">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-xl bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-brand-300 font-bold flex items-center justify-center text-sm">5</span>
+                            <div>
+                                <h3 class="font-bold text-base">Extensión Posterior Isométrica</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Resistencia posterior en occipital (3 series x 10 reps).</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-xs font-semibold text-slate-500">Selecciona las series completadas:</div>
+                        <div class="grid grid-cols-3 gap-2" id="sets-ex-5">
+                            <button onclick="toggleSet(5, 1)" class="p-3 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 flex flex-col items-center gap-1 transition">
+                                <span>Serie 1</span>
+                                <span class="text-[10px] text-slate-400">10 reps</span>
+                            </button>
+                            <button onclick="toggleSet(5, 2)" class="p-3 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 flex flex-col items-center gap-1 transition">
+                                <span>Serie 2</span>
+                                <span class="text-[10px] text-slate-400">10 reps</span>
+                            </button>
+                            <button onclick="toggleSet(5, 3)" class="p-3 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 flex flex-col items-center gap-1 transition">
+                                <span>Serie 3</span>
+                                <span class="text-[10px] text-slate-400">10 reps</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- VÍDEO 2 -->
+            <div class="section-block space-y-4" id="section-v2">
+                <div class="flex items-center gap-2 pb-2 border-b border-slate-200 dark:border-slate-800">
+                    <i class="ph-bold ph-barbell text-brand-500 text-xl"></i>
+                    <h2 class="font-bold text-lg">Vídeo 2: Técnica con Palo y Toalla</h2>
+                </div>
+
+                <!-- Ejercicio 6 -->
+                <div class="exercise-card bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4 transition" data-id="6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-xl bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-brand-300 font-bold flex items-center justify-center text-sm">6</span>
+                            <div>
+                                <h3 class="font-bold text-base">Automasaje con Palo y Toalla</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Deslizamiento sobre la musculatura occipital (4-5 pasadas por punto).</p>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl">
+                        <strong>Material:</strong> Palo envuelto en toalla. Colócalo en la nuca y realiza movimientos lentos de fricción.
+                    </p>
+                    <div class="flex justify-end pt-2">
+                        <button onclick="toggleExercise(6)" id="btn-ex-6" class="px-4 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-2">
+                            <i class="ph-bold ph-circle"></i> Marcar Completado
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Ejercicio 7 -->
+                <div class="exercise-card bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4 transition" data-id="7">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-xl bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-brand-300 font-bold flex items-center justify-center text-sm">7</span>
+                            <div>
+                                <h3 class="font-bold text-base">Presión + Respiración Profunda</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Mantenimiento con soporte de respiración (2-3 puntos por lado).</p>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl">
+                        <strong>Instrucciones:</strong> Apoya el palo en el punto tenso e inhala profundamente dirigiendo el aire al tórax. Al exhalar, permite que los músculos cedan suavemente.
+                    </p>
+                    <div class="flex justify-end pt-2">
+                        <button onclick="toggleExercise(7)" id="btn-ex-7" class="px-4 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-2">
+                            <i class="ph-bold ph-circle"></i> Marcar Completado
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Ejercicio 8 -->
+                <div class="exercise-card bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4 transition" data-id="8">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-xl bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-brand-300 font-bold flex items-center justify-center text-sm">8</span>
+                            <div>
+                                <h3 class="font-bold text-base">Estiramiento Cervical en Suelo</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Tracción ligera tumbado boca arriba (2 series x 10 reps, 1 min descanso).</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-xs font-semibold text-slate-500">Selecciona las series completadas:</div>
+                        <div class="grid grid-cols-2 gap-2" id="sets-ex-8">
+                            <button onclick="toggleSet(8, 1)" class="p-3 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 flex flex-col items-center gap-1 transition">
+                                <span>Serie 1</span>
+                                <span class="text-[10px] text-slate-400">10 reps</span>
+                            </button>
+                            <button onclick="toggleSet(8, 2)" class="p-3 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 flex flex-col items-center gap-1 transition">
+                                <span>Serie 2</span>
+                                <span class="text-[10px] text-slate-400">10 reps</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Navegación Modo Paso a Paso (Oculto por defecto) -->
+        <div id="step-nav" class="hidden flex justify-between items-center bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+            <button onclick="prevStep()" id="btn-prev-step" class="px-4 py-2 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-1">
+                <i class="ph-bold ph-caret-left"></i> Anterior
+            </button>
+            <span id="step-indicator" class="text-xs font-bold text-slate-500 font-mono">Ejercicio 1 de 8</span>
+            <button onclick="nextStep()" id="btn-next-step" class="px-4 py-2 text-xs font-bold rounded-xl bg-brand-500 text-white hover:bg-brand-600 transition flex items-center gap-1">
+                Siguiente <i class="ph-bold ph-caret-right"></i>
+            </button>
+        </div>
+
+    </main>
+
+    <script>
+        // ESTADO GLOBAL
+        const exerciseState = {
+            1: false,
+            2: false,
+            3: [false, false, false],
+            4: [false, false, false],
+            5: [false, false, false],
+            6: false,
+            7: false,
+            8: [false, false]
+        };
+
+        let currentStep = 1;
+        let viewMode = 'all'; // 'all' | 'step'
+
+        // MODO OSCURO
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            const icon = document.getElementById('theme-icon');
+            if (document.documentElement.classList.contains('dark')) {
+                icon.className = 'ph-bold ph-sun text-xl';
+            } else {
+                icon.className = 'ph-bold ph-moon text-xl';
+            }
+        }
+
+        // CRONÓMETRO GENERAL
+        let globalSeconds = 0;
+        let globalTimerInterval = null;
+        let isGlobalRunning = false;
+
+        function toggleGlobalTimer() {
+            const btn = document.getElementById('global-timer-btn');
+            if (isGlobalRunning) {
+                clearInterval(globalTimerInterval);
+                isGlobalRunning = false;
+                btn.innerHTML = '<i class="ph-fill ph-play text-lg"></i>';
+                btn.className = "w-10 h-10 bg-brand-500 hover:bg-brand-600 text-white rounded-xl flex items-center justify-center transition shadow-md shadow-brand-500/20";
+            } else {
+                isGlobalRunning = true;
+                globalTimerInterval = setInterval(() => {
+                    globalSeconds++;
+                    const mins = Math.floor(globalSeconds / 60);
+                    const secs = globalSeconds % 60;
+                    document.getElementById('global-timer-display').textContent = 
+                        String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+                }, 1000);
+                btn.innerHTML = '<i class="ph-fill ph-pause text-lg"></i>';
+                btn.className = "w-10 h-10 bg-amber-500 hover:bg-amber-600 text-white rounded-xl flex items-center justify-center transition shadow-md shadow-amber-500/20";
+            }
+        }
+
+        function resetGlobalTimer() {
+            clearInterval(globalTimerInterval);
+            isGlobalRunning = false;
+            globalSeconds = 0;
+            document.getElementById('global-timer-display').textContent = "00:00";
+            document.getElementById('global-timer-btn').innerHTML = '<i class="ph-fill ph-play text-lg"></i>';
+        }
+
+        // TEMPORIZADOR DE CUENTA ATRÁS
+        let countdownSeconds = 0;
+        let countdownInterval = null;
+        let isCountdownRunning = false;
+
+        function setCountdown(sec) {
+            clearInterval(countdownInterval);
+            isCountdownRunning = false;
+            countdownSeconds = sec;
+            updateCountdownDisplay();
+            document.getElementById('countdown-btn').innerHTML = '<i class="ph-fill ph-play"></i> Iniciar';
+        }
+
+        function updateCountdownDisplay() {
+            const mins = Math.floor(countdownSeconds / 60);
+            const secs = countdownSeconds % 60;
+            document.getElementById('countdown-display').textContent = 
+                String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+        }
+
+        function toggleCountdown() {
+            if (countdownSeconds <= 0) setCountdown(60);
+            const btn = document.getElementById('countdown-btn');
+
+            if (isCountdownRunning) {
+                clearInterval(countdownInterval);
+                isCountdownRunning = false;
+                btn.innerHTML = '<i class="ph-fill ph-play"></i> Continuar';
+            } else {
+                isCountdownRunning = true;
+                btn.innerHTML = '<i class="ph-fill ph-pause"></i> Pausa';
+                countdownInterval = setInterval(() => {
+                    countdownSeconds--;
+                    updateCountdownDisplay();
+                    if (countdownSeconds <= 0) {
+                        clearInterval(countdownInterval);
+                        isCountdownRunning = false;
+                        btn.innerHTML = '<i class="ph-fill ph-play"></i> Iniciar';
+                        playAlarmSound();
+                    }
+                }, 1000);
+            }
+        }
+
+        function playAlarmSound() {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, ctx.currentTime);
+            gain.gain.setValueAtTime(0.3, ctx.currentTime);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.5);
+        }
+
+        // CONTROL DE COMPLETADO DE EJERCICIOS
+        function toggleExercise(id) {
+            exerciseState[id] = !exerciseState[id];
+            const btn = document.getElementById(`btn-ex-${id}`);
+            const card = document.querySelector(`[data-id="${id}"]`);
+
+            if (exerciseState[id]) {
+                btn.innerHTML = '<i class="ph-bold ph-check-circle text-emerald-500 text-base"></i> Completado';
+                btn.className = "px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 flex items-center gap-2";
+                card.classList.add('border-emerald-300', 'dark:border-emerald-800');
+            } else {
+                btn.innerHTML = '<i class="ph-bold ph-circle"></i> Marcar Completado';
+                btn.className = "px-4 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-2";
+                card.classList.remove('border-emerald-300', 'dark:border-emerald-800');
+            }
+            updateProgress();
+        }
+
+        function toggleSet(exId, setIdx) {
+            const arrayIdx = setIdx - 1;
+            exerciseState[exId][arrayIdx] = !exerciseState[exId][arrayIdx];
+            
+            const btn = document.querySelectorAll(`#sets-ex-${exId} button`)[arrayIdx];
+            if (exerciseState[exId][arrayIdx]) {
+                btn.classList.add('bg-emerald-500', 'text-white', 'border-emerald-600');
+                btn.classList.remove('hover:bg-slate-50', 'dark:hover:bg-slate-800');
+            } else {
+                btn.classList.remove('bg-emerald-500', 'text-white', 'border-emerald-600');
+                btn.classList.add('hover:bg-slate-50', 'dark:hover:bg-slate-800');
+            }
+            updateProgress();
+        }
+
+        function isExerciseDone(id) {
+            if (Array.isArray(exerciseState[id])) {
+                return exerciseState[id].every(val => val === true);
+            }
+            return exerciseState[id];
+        }
+
+        function updateProgress() {
+            let total = 8;
+            let done = 0;
+
+            for (let i = 1; i <= total; i++) {
+                if (isExerciseDone(i)) done++;
+            }
+
+            const percent = Math.round((done / total) * 100);
+            document.getElementById('progress-bar').style.width = percent + '%';
+            document.getElementById('progress-percent').textContent = percent + '%';
+            document.getElementById('progress-status').textContent = `${done} de ${total} ejercicios completados`;
+
+            if (percent === 100) {
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+        }
+
+        // CAMBIO DE VISTA (COMPLETA VS PASO A PASO)
+        function setViewMode(mode) {
+            viewMode = mode;
+            const btnAll = document.getElementById('btn-view-all');
+            const btnStep = document.getElementById('btn-view-step');
+            const stepNav = document.getElementById('step-nav');
+
+            if (mode === 'all') {
+                btnAll.className = "px-3 py-1.5 rounded-lg transition-all bg-white dark:bg-slate-700 shadow-sm";
+                btnStep.className = "px-3 py-1.5 rounded-lg transition-all text-slate-500 hover:text-slate-800 dark:hover:text-slate-200";
+                stepNav.classList.add('hidden');
+
+                document.querySelectorAll('.exercise-card').forEach(card => card.classList.remove('hidden'));
+                document.querySelectorAll('.section-block').forEach(block => block.classList.remove('hidden'));
+            } else {
+                btnStep.className = "px-3 py-1.5 rounded-lg transition-all bg-white dark:bg-slate-700 shadow-sm";
+                btnAll.className = "px-3 py-1.5 rounded-lg transition-all text-slate-500 hover:text-slate-800 dark:hover:text-slate-200";
+                stepNav.classList.remove('hidden');
+
+                showStep(currentStep);
+            }
+        }
+
+        function showStep(step) {
+            currentStep = step;
+            document.querySelectorAll('.exercise-card').forEach(card => {
+                if (parseInt(card.getAttribute('data-id')) === step) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+
+            document.getElementById('step-indicator').textContent = `Ejercicio ${step} de 8`;
+            document.getElementById('btn-prev-step').disabled = (step === 1);
+            document.getElementById('btn-next-step').disabled = (step === 8);
+        }
+
+        function prevStep() {
+            if (currentStep > 1) showStep(currentStep - 1);
+        }
+
+        function nextStep() {
+            if (currentStep < 8) showStep(currentStep + 1);
+        }
+    </script>
+</body>
+</html>
+```
